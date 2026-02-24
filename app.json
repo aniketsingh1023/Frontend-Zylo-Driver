@@ -1,0 +1,16 @@
+{
+  "name": "ZyloServeApp",
+  "displayName": "ZyloServeApp",
+    "ios": {
+    "config": {
+      "googleMapsApiKey": "AIzaSyB-T2GimiJHK0Ndb9RV02CUgIoR4dMU7q0"
+    }
+  },
+  "android": {
+    "config": {
+      "googleMaps": {
+        "apiKey": "AIzaSyB-T2GimiJHK0Ndb9RV02CUgIoR4dMU7q0"
+      }
+    }
+  }
+}
