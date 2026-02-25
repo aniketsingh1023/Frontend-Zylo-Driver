@@ -54,6 +54,14 @@ export const getLocalStorage = async (key: string): Promise<string | null> => {
   }
 };
 
+export const removeLocalStorage = async (key: string): Promise<void> => {
+  try {
+    await AsyncStorage.removeItem(key);
+  } catch (e) {
+    console.error('Error removing local storage:', e);
+  }
+};
+
 export function getMediaUrl(filePath: string): string {
   return `${IMAGE_URL}${filePath}`;
 }
@@ -106,46 +114,61 @@ export const formatAmount = (
 export const buildRiderSignupFormData = (data: IRiderSignUpFormPayload) => {
   const formData = new FormData();
 
-  formData.append('firstName', data.firstName || '');
-  formData.append('lastName', data.lastName || '');
-  formData.append('email', data.email || '');
-  formData.append('username', data.userName || '');
-  formData.append('password', data.password || '');
-  formData.append('phoneNumber', data.phoneNumber || '');
+  // Basic fields - backend expects these exact names
+  formData.append('FirstName', data.firstName || '');
+  formData.append('LastName', data.lastName || '');
+  formData.append('Email', data.email || '');
+  formData.append('UserName', data.userName || '');
+  formData.append('Password', data.password || '');
+  formData.append('PhoneNumber', data.phoneNumber || '');
 
-  formData.append('address.streetAddress', data.address?.streetAddress || '');
-  formData.append('address.city', data.address?.city || '');
-  formData.append('address.state', data.address?.state || '');
-  formData.append('address.zipcode', data.address?.zipcode || '');
-  formData.append('address.country', data.address?.country || '');
-  formData.append('address.addressLink', data.address?.addressLink || '');
+  // Address fields - backend expects Pascal case
+  formData.append('Address.StreetAddress', data.address?.streetAddress || '');
+  formData.append('Address.City', data.address?.city || '');
+  formData.append('Address.State', data.address?.state || '');
+  formData.append('Address.Zipcode', data.address?.zipcode || '');
+  formData.append('Address.Country', data.address?.country || '');
 
+  // AddressLink is required - generate a Google Maps search link if not provided
+  const addressLink =
+    data.address?.addressLink ||
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      `${data.address?.streetAddress || ''} ${data.address?.city || ''} ${
+        data.address?.state || ''
+      } ${data.address?.country || ''}`,
+    )}`;
+  formData.append('Address.AddressLink', addressLink);
+
+  // Profile picture
   if (data.profilePicture) {
-    formData.append('profilePicture', {
-      uri: data.profilePicture.uri,
-      name: data.profilePicture.fileName || 'profile.jpg',
-      type: data.profilePicture.type || 'image/jpeg',
+    const pic = data.profilePicture as any;
+    formData.append('ProfilePicture', {
+      uri: pic.uri,
+      name: pic.name || pic.fileName || 'profile.jpg',
+      type: pic.type || 'image/jpeg',
     } as any);
   }
 
+  // Documents
   if (data.documents) {
     data.documents.forEach((doc, index) => {
-      formData.append(`documents[${index}].documentNumber`, doc.documentNumber);
+      formData.append(`Documents[${index}].DocumentNumber`, doc.documentNumber);
       formData.append(
-        `documents[${index}].documentExpiryDate`,
+        `Documents[${index}].DocumentExpiryDate`,
         doc.documentExpiryDate,
       );
-      formData.append(`documents[${index}].file`, {
-        uri: doc.file.uri,
-        name: doc.file.fileName || `document_${index}.jpg`,
-        type: doc.file.type || 'image/jpeg',
+
+      const file = doc.file as any;
+      formData.append(`Documents[${index}].File`, {
+        uri: file.uri,
+        name: file.name || file.fileName || `document_${index}.jpg`,
+        type: file.type || 'image/jpeg',
       } as any);
     });
   }
 
   return formData;
 };
-
 export const buildVehicleFormData = (data: IVehicleFormPayload) => {
   const formData = new FormData();
 

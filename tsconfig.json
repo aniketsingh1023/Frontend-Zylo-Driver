@@ -8,11 +8,18 @@
     "allowJs": true,
     "checkJs": false,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "outDir": "build"
   },
   "include": ["src"],
-  "exclude": ["node_modules", "@react-native/typescript-config/tsconfig.json"]
-  // "extends": "@react-native/typescript-config/tsconfig.json"
-
+  "exclude": [
+    "node_modules",
+    "@react-native/typescript-config/tsconfig.json",
+    "src/Redux/Reducer/index.js",
+    "src/Redux/Store/index.js",
+    "src/common/GooglePlacesInput.js",
+    "src/common/LocationScreen.js",
+    "src/config.js",
+    "src/screens/index.js"
+  ]
 }
-

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   Platform,
@@ -75,6 +75,28 @@ const Personalinformation = () => {
   const [lastName, setlastName] = useState(userState?.lastName || '');
   const [phone, setphone] = useState(userState?.phoneNumber || '');
   const [email, setemail] = useState(userState?.email || '');
+  const [address, setAddress] = useState<IAddress>(
+    userState?.address || {
+      streetAddress: '',
+      city: '',
+      state: '',
+      zipcode: '',
+      country: '',
+      addressLink: '',
+      addressTitle: 'Rider address',
+    },
+  );
+
+  // Sync address from Redux when it updates (from location modal)
+  useEffect(() => {
+    if (
+      userState?.address &&
+      (userState.address.city !== address.city ||
+        userState.address.streetAddress !== address.streetAddress)
+    ) {
+      setAddress(userState.address);
+    }
+  }, [userState?.address]);
 
   const handleImagePicker = async () => {
     try {
@@ -115,6 +137,7 @@ const Personalinformation = () => {
           lastName: lastName,
           email: email,
           phoneNumber: phone,
+          address: address, // Store address in Redux
         }),
       );
     }
@@ -231,28 +254,35 @@ const Personalinformation = () => {
 
             <Input
               placeholder="Street"
-              value={userState?.address?.streetAddress}
-              editable={false}
+              value={address?.streetAddress}
+              onChangeText={text =>
+                setAddress({ ...address, streetAddress: text })
+              }
+              editable={true}
             />
             <Input
               placeholder="City"
-              value={userState?.address?.city}
-              editable={false}
+              value={address?.city}
+              onChangeText={text => setAddress({ ...address, city: text })}
+              editable={true}
             />
             <Input
               placeholder="State"
-              value={userState?.address?.state}
-              editable={false}
+              value={address?.state}
+              onChangeText={text => setAddress({ ...address, state: text })}
+              editable={true}
             />
             <Input
               placeholder="Country"
-              value={userState?.address?.country}
-              editable={false}
+              value={address?.country}
+              onChangeText={text => setAddress({ ...address, country: text })}
+              editable={true}
             />
             <Input
               placeholder="Zip Code"
-              value={userState?.address?.zipcode}
-              editable={false}
+              value={address?.zipcode}
+              onChangeText={text => setAddress({ ...address, zipcode: text })}
+              editable={true}
             />
 
             {/* Buttons */}
@@ -298,28 +328,20 @@ const Personalinformation = () => {
     drivingLicense: ImageType | null,
   ) => {
     if (!profileImg) return 'Profile image is required';
-    if (!documerntImg) return 'documerntImg image is required';
-    if (!drivingLicense) return 'drivingLicense image is required';
+    if (!documerntImg) return 'Government ID is required';
+    if (!drivingLicense) return 'Driving license is required';
     if (!user?.firstName?.trim()) return 'First name is required';
     if (!user?.email?.trim()) return 'Email is required';
     if (!user?.password?.trim()) return 'Password is required';
     if (!user?.phoneNumber?.trim()) return 'Phone number is required';
 
     const address = user?.address || {};
-    const requiredFields: (keyof IAddress)[] = [
-      'streetAddress',
-      'city',
-      'state',
-      'zipcode',
-      'country',
-      'addressLink',
-    ];
-
-    for (const field of requiredFields) {
-      const value = address[field];
-      if (!value?.trim()) {
-        return `${field.replace(/([A-Z])/g, ' $1')} is required`;
-      }
+    // Only check if at least city and country are provided
+    if (!address.city?.trim()) {
+      return 'City is required in address';
+    }
+    if (!address.country?.trim()) {
+      return 'Country is required in address';
     }
 
     return null;
@@ -358,13 +380,13 @@ const Personalinformation = () => {
         password: userState.password || '',
         phoneNumber: userState.phoneNumber || '',
         address: {
-          streetAddress: userState.address?.streetAddress || '',
-          city: userState.address?.city || '',
-          state: userState.address?.state || '',
-          zipcode: userState.address?.zipcode || '',
-          country: userState.address?.country || '',
-          addressLink: userState.address?.addressLink || '',
-          addressTitle: userState.address?.addressTitle || 'Rider address',
+          streetAddress: address.streetAddress || '',
+          city: address.city || '',
+          state: address.state || '',
+          zipcode: address.zipcode || '',
+          country: address.country || '',
+          addressLink: address.addressLink || '',
+          addressTitle: address.addressTitle || 'Rider address',
         },
         profilePicture: profileImg,
         documents: documentList,
@@ -381,8 +403,23 @@ const Personalinformation = () => {
             errorToast(extractErrorMessage(response));
           }
         },
-        onError: () => {
-          errorToast('Something went wrong. Please try again.');
+        onError: (error: any) => {
+          console.error('SignUp API Error:', error);
+
+          // Check if it's a 500 server error
+          if (error?.response?.status === 500 || error?.status === 500) {
+            // Special case: User might have been created despite 500 error
+            infoToast(
+              'Registration may have succeeded. Please try logging in. If login fails, contact support.',
+            );
+            // Clear form and navigate to login after a delay
+            setTimeout(() => {
+              dispatch(logoutUserInfoRedux());
+              navigation.navigate('SignInScreen');
+            }, 3000);
+          } else {
+            errorToast('Something went wrong. Please try again.');
+          }
         },
       });
     } catch (error) {
@@ -424,7 +461,15 @@ const Personalinformation = () => {
           <LocationScreen
             fieldName={'location'}
             setopenLocationModal={setOpenLocationModal}
-            setLocationDetails={() => {}}
+            setLocationDetails={(locationData: IAddress) => {
+              setAddress(locationData);
+              dispatch(
+                storeUserDetails({
+                  ...userState,
+                  address: locationData,
+                }),
+              );
+            }}
           />
         </SafeAreaView>
       </Modal>

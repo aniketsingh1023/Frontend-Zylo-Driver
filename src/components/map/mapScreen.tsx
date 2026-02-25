@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Colors } from '../../common/Theam';
 import { storeCurrentLocation } from '../../Redux/Reducer/UserinfoReducer';
 import { GOOGLE_MAPS_APIKEY } from '../../utils/helper';
+import { useLocationTracking } from '../../services/hooks/useLocationTracking';
 
 interface RouteInfo {
   distance: number;
@@ -51,35 +52,31 @@ const MapScreen: React.FC = () => {
 
   const dispatch = useDispatch();
   const mapRef = useRef<MapView>(null);
-  const [currentLocation, setCurrentLocation] = useState<LatLng | null>(
-    currentLocationFromRedux || null,
-  );
   const [info, setInfo] = useState<RouteInfo>({ distance: 0, duration: 0 });
 
   // Replace with your real pickup and drop points
   const source: LatLng = { latitude: 37.771707, longitude: -122.4053769 };
   const destination: LatLng = { latitude: 37.7987, longitude: -122.48329 };
 
-  // Watch and update rider's current location
+  // Use SignalR location tracking hook
+  const {
+    isConnected,
+    currentLocation,
+    error: locationError,
+    startTracking,
+    stopTracking,
+  } = useLocationTracking({
+    enabled: true, // Enable real-time tracking
+    updateInterval: 5000, // Update every 5 seconds
+    distanceFilter: 10, // Update when moved 10 meters
+  });
+
+  // Update Redux store when location changes
   useEffect(() => {
-    const options: GeoWatchOptions = {
-      enableHighAccuracy: true,
-      distanceFilter: 10,
-      interval: 5000,
-    };
-
-    const watchId = Geolocation.watchPosition(
-      (position: any) => {
-        const { latitude, longitude } = position.coords;
-        dispatch(storeCurrentLocation({ latitude, longitude }));
-        setCurrentLocation({ latitude, longitude });
-      },
-      error => console.warn('Location error:', error),
-      options,
-    );
-
-    return () => Geolocation.clearWatch(watchId);
-  }, []);
+    if (currentLocation) {
+      dispatch(storeCurrentLocation(currentLocation));
+    }
+  }, [currentLocation, dispatch]);
 
   // Animate map to rider’s position
   useEffect(() => {

@@ -1,72 +1,178 @@
-import React, {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {useSelector} from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  Platform,
+  PermissionsAndroid,
+  Alert,
+} from 'react-native';
+import { useSelector } from 'react-redux';
 import Button from './Button';
 import GooglePlacesInput from './GooglePlacesInput';
-import {Font} from './Theam';
-import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
+import { Font } from './Theam';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import Geolocation from '@react-native-community/geolocation';
 
 export default LocationScreen = ({
   setopenLocationModal,
-  // formikObj,
   fieldName,
   setLocationDetails,
 }) => {
-  // const {location} = useSelector(state => state.userRedux);
   const [location, setLocation] = useState();
   const [region, setRegion] = React.useState({
-    latitude: location?.lat || 0,
-    longitude: location?.lng || 0,
+    latitude: 37.78825,
+    longitude: -122.4324,
+    latitudeDelta: 0.0922,
+    longitudeDelta: 0.0421,
   });
+  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+
+
+  const reverseGeocode = async (latitude, longitude) => {
+    setIsLoadingAddress(true);
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyB-T2GimiJHK0Ndb9RV02CUgIoR4dMU7q0`,
+      );
+      const data = await response.json();
+
+      if (data.results && data.results.length > 0) {
+        const addressComponents = data.results[0].address_components;
+
+        let city, state, country, postal_code, streetAddress;
+        let cityFullName, stateFullName, countryFullName;
+
+        addressComponents.forEach(component => {
+          const types = component.types;
+          if (types.includes('locality')) {
+            city = component.short_name;
+            cityFullName = component.long_name;
+          } else if (types.includes('administrative_area_level_1')) {
+            state = component.short_name;
+            stateFullName = component.long_name;
+          } else if (types.includes('country')) {
+            country = component.short_name;
+            countryFullName = component.long_name;
+          } else if (types.includes('postal_code')) {
+            postal_code = component.long_name;
+          } else if (
+            types.includes('route') ||
+            types.includes('street_address')
+          ) {
+            streetAddress = component.long_name;
+          }
+        });
+
+        
+        if (!streetAddress) {
+          streetAddress = data.results[0].formatted_address.split(',')[0];
+        }
+
+        const addressData = {
+          streetAddress: streetAddress || cityFullName || '',
+          city: cityFullName || '',
+          state: stateFullName || '',
+          zipcode: postal_code || '',
+          country: countryFullName || '',
+          addressLink: `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`,
+        };
+
+        
+        setLocationDetails(addressData);
+        console.log('Auto-filled address:', addressData);
+      }
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+    } finally {
+      setIsLoadingAddress(false);
+    }
+  };
+
+  
+  useEffect(() => {
+    const requestLocationPermission = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            {
+              title: 'Location Permission',
+              message: 'This app needs access to your location',
+              buttonNeutral: 'Ask Me Later',
+              buttonNegative: 'Cancel',
+              buttonPositive: 'OK',
+            },
+          );
+          if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+            getCurrentLocation();
+          }
+        } catch (err) {
+          console.warn(err);
+        }
+      } else {
+        getCurrentLocation();
+      }
+    };
+
+    const getCurrentLocation = () => {
+      Geolocation.getCurrentPosition(
+        position => {
+          const { latitude, longitude } = position.coords;
+          setRegion({
+            latitude,
+            longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          });
+          
+          reverseGeocode(latitude, longitude);
+        },
+        error => {
+          console.log('Location error:', error);
+          Alert.alert(
+            'Location Error',
+            'Could not get your current location. Please search for an address.',
+          );
+        },
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
+      );
+    };
+
+    requestLocationPermission();
+  }, []);
   const handleMarkerDragEnd = e => {
-    const {latitude, longitude} = e.nativeEvent.coordinate;
+    const { latitude, longitude } = e.nativeEvent.coordinate;
     setRegion(prev => ({
       ...prev,
       latitude,
       longitude,
     }));
+    
+    reverseGeocode(latitude, longitude);
   };
 
   return (
     <>
       <View style={styles.container}>
-        <View style={{flex: 1, marginTop: 10}}>
+        <View style={{ flex: 1, marginTop: 10 }}>
           <MapView
             provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFillObject}
-            initialRegion={{
-              latitude: region.latitude,
-              longitude: region.longitude,
-              latitudeDelta: 1,
-              longitudeDelta: 1,
-              // latitude: 37.78825,
-              // longitude: -122.4324,
-              // latitudeDelta: 0.0922,
-              // longitudeDelta: 0.0421,
-            }}
-            region={{
-              latitude: region.latitude,
-              longitude: region.longitude,
-              latitudeDelta: 1,
-              longitudeDelta: 1,
-            }}
-            onRegionChangeComplete={setRegion}>
-            {region.latitude != 0 &&
-              region.longitude != 0 &&
-              region.latitude &&
-              region.longitude && (
-                <Marker
-                  draggable={true}
-                  onDragEnd={handleMarkerDragEnd}
-                  // key={index}
-                  coordinate={{
-                    latitude: region.latitude,
-                    longitude: region.longitude,
-                  }}
-                  title={'Your Location1'}
-                  // description={marker.description}
-                />
-              )}
+            initialRegion={region}
+            region={region}
+            onRegionChangeComplete={setRegion}
+          >
+            {region.latitude && region.longitude && (
+              <Marker
+                draggable={true}
+                onDragEnd={handleMarkerDragEnd}
+                coordinate={{
+                  latitude: region.latitude,
+                  longitude: region.longitude,
+                }}
+                title={'Your Location'}
+              />
+            )}
           </MapView>
           <GooglePlacesInput
             // formikObj={formikObj}
@@ -82,8 +188,11 @@ export default LocationScreen = ({
             flexDirection: 'row',
             justifyContent: 'flex-end',
             marginVertical: 10,
-          }}>
-          <View style={{width: '20%', marginVertical: 0, marginHorizontal: 20}}>
+          }}
+        >
+          <View
+            style={{ width: '20%', marginVertical: 0, marginHorizontal: 20 }}
+          >
             <Button
               buttonName={'Cancel'}
               onPress={() => {
@@ -91,7 +200,7 @@ export default LocationScreen = ({
               }}
             />
           </View>
-          <View style={{width: '20%', marginVertical: 0}}>
+          <View style={{ width: '20%', marginVertical: 0 }}>
             <Button
               buttonName={'Save'}
               onPress={() => {
@@ -136,5 +245,5 @@ const styles = StyleSheet.create({
     fontFamily: Font.textNormal,
     color: 'red',
   },
-  line: {marginVertical: 20},
+  line: { marginVertical: 20 },
 });

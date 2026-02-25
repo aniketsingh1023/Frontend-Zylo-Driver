@@ -27,6 +27,8 @@ import LocationScreen from '../../../common/LocationScreen';
 import { useQueryClient } from '@tanstack/react-query';
 import { ImageType } from '../../../api/types/authTypes';
 import ImagePicker from 'react-native-image-crop-picker';
+import { useUpdateDriverProfile } from '../../../data-access/mutations/driver';
+import { successToast, errorToast } from '../../../components/toasts';
 
 type NavigationProps = StackNavigationProp<
   AuthStackParamList,
@@ -41,6 +43,49 @@ const DriverAccountEditScreen = () => {
   const [isOnline, setIsOnline] = useState(data?.isOnline || false);
   const [openLocationModal, setOpenLocationModal] = useState(false);
   const [profileImg, setProfileImg] = useState<ImageType | null>(null);
+
+  const [formData, setFormData] = useState({
+    firstName: data?.firstName || '',
+    lastName: data?.lastName || '',
+    phoneNumber: data?.phoneNumber || '',
+    email: data?.email || '',
+    address: {
+      streetAddress: data?.address?.streetAddress || '',
+      city: data?.address?.city || '',
+      state: data?.address?.state || '',
+      country: data?.address?.country || '',
+      zipcode: data?.address?.zipcode || '',
+      addressLink: data?.address?.addressLink || '',
+    },
+  });
+
+  const { mutate: updateProfile, isPending } = useUpdateDriverProfile();
+
+  const handleSave = () => {
+    const payload = {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phoneNumber: formData.phoneNumber,
+      profilePicture: profileImg,
+      address: formData.address,
+    };
+
+    updateProfile(payload, {
+      onSuccess: response => {
+        if (response?.remote === 'success') {
+          successToast('Profile updated successfully');
+          queryClient.invalidateQueries({ queryKey: ['currentDriverKey'] });
+          setEditable(false);
+        } else {
+          errorToast(response?.errors?.errors || 'Failed to update profile');
+        }
+      },
+      onError: (error: any) => {
+        errorToast(error?.message || 'Something went wrong');
+      },
+    });
+  };
 
   const handleImagePicker = async () => {
     try {
@@ -99,54 +144,88 @@ const DriverAccountEditScreen = () => {
           <Input
             editable={editable}
             placeholder="First Name"
-            value={data?.firstName}
+            value={formData.firstName}
+            onChangeText={text => setFormData({ ...formData, firstName: text })}
           />
           <Input
             editable={editable}
             placeholder="Last Name"
-            value={data?.lastName}
+            value={formData.lastName}
+            onChangeText={text => setFormData({ ...formData, lastName: text })}
           />
           <Input
             editable={false}
             placeholder="Mobile Number"
-            value={data?.phoneNumber}
+            value={formData.phoneNumber}
           />
-          <Input editable={false} placeholder="Email" value={data?.email} />
+          <Input editable={false} placeholder="Email" value={formData.email} />
 
           {/* Address Section */}
-          {/* <TouchableOpacity
-            onPress={() => setOpenLocationModal(true)}
-            style={styles.locationButton}
-          >
-            <CustomText style={styles.locationText}>
-              📍 Tap to fill address using map
-            </CustomText>
-          </TouchableOpacity> */}
+          {editable && (
+            <TouchableOpacity
+              onPress={() => setOpenLocationModal(true)}
+              style={styles.locationButton}
+            >
+              <CustomText style={styles.locationText}>
+                📍 Tap to fill address using map
+              </CustomText>
+            </TouchableOpacity>
+          )}
 
           <Input
             placeholder="Street"
-            value={data?.address?.streetAddress}
+            value={formData.address.streetAddress}
             editable={editable}
+            onChangeText={text =>
+              setFormData({
+                ...formData,
+                address: { ...formData.address, streetAddress: text },
+              })
+            }
           />
           <Input
             placeholder="City"
-            value={data?.address?.city}
+            value={formData.address.city}
             editable={editable}
+            onChangeText={text =>
+              setFormData({
+                ...formData,
+                address: { ...formData.address, city: text },
+              })
+            }
           />
           <Input
             placeholder="State"
-            value={data?.address?.state}
+            value={formData.address.state}
             editable={editable}
+            onChangeText={text =>
+              setFormData({
+                ...formData,
+                address: { ...formData.address, state: text },
+              })
+            }
           />
           <Input
             placeholder="Country"
-            value={data?.address?.country}
+            value={formData.address.country}
             editable={editable}
+            onChangeText={text =>
+              setFormData({
+                ...formData,
+                address: { ...formData.address, country: text },
+              })
+            }
           />
           <Input
             placeholder="Zip Code"
-            value={data?.address?.zipcode}
+            value={formData.address.zipcode}
             editable={editable}
+            onChangeText={text =>
+              setFormData({
+                ...formData,
+                address: { ...formData.address, zipcode: text },
+              })
+            }
           />
 
           {/* Documents Section */}
@@ -208,10 +287,8 @@ const DriverAccountEditScreen = () => {
           <Button
             buttonName="Save Changes"
             btnwidth="100%"
-            onPress={() => {
-              setEditable(false);
-              console.log('Send Update API Here!');
-            }}
+            loader={isPending}
+            onPress={handleSave}
           />
         ) : (
           <Button
@@ -232,7 +309,19 @@ const DriverAccountEditScreen = () => {
           <LocationScreen
             fieldName={'location'}
             setopenLocationModal={setOpenLocationModal}
-            setLocationDetails={() => {}}
+            setLocationDetails={(locationData: any) => {
+              setFormData({
+                ...formData,
+                address: {
+                  streetAddress: locationData.streetAddress || '',
+                  city: locationData.city || '',
+                  state: locationData.state || '',
+                  country: locationData.country || '',
+                  zipcode: locationData.zipcode || '',
+                  addressLink: locationData.addressLink || '',
+                },
+              });
+            }}
           />
         </SafeAreaView>
       </Modal>
