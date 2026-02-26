@@ -88,18 +88,41 @@ type ErrorResponse = {
   };
 };
 
-export const extractErrorMessage = (response: FailureResponse): string => {
-  const errorFields = response?.errors?.errors;
+export const extractErrorMessage = (response: any): string => {
+  if (__DEV__) {
+    console.log('Extracting error from response:', JSON.stringify(response, null, 2));
+  }
+  
+  const errorFields = response?.errors?.errors || response?.errors;
+  
+  if (typeof errorFields === 'string') {
+    return errorFields;
+  }
+
   if (errorFields && typeof errorFields === 'object') {
+    // If it's an array of errors
+    if (Array.isArray(errorFields) && errorFields.length > 0 && typeof errorFields[0] === 'string') {
+      return errorFields[0];
+    }
+    
+    // Check for common error keys
+    if (typeof errorFields.message === 'string') return errorFields.message;
+    if (typeof errorFields.error === 'string') return errorFields.error;
+
     for (const key in errorFields) {
       const messages = errorFields[key];
-      if (Array.isArray(messages) && messages?.length > 0) {
+      if (Array.isArray(messages) && messages?.length > 0 && typeof messages[0] === 'string') {
         return messages[0];
-      } else if (key == 'message') {
-        return errorFields[key];
+      } else if (typeof messages === 'string' && (key === 'message' || key === 'error')) {
+        return messages;
       }
     }
   }
+
+  // Fallback to checking the response directly
+  if (typeof response?.message === 'string') return response.message;
+  if (typeof response?.error === 'string') return response.error;
+
   return 'Something went wrong';
 };
 export const formatAmount = (
@@ -142,11 +165,21 @@ export const buildRiderSignupFormData = (data: IRiderSignUpFormPayload) => {
   // Profile picture
   if (data.profilePicture) {
     const pic = data.profilePicture as any;
-    formData.append('ProfilePicture', {
+    // React Native FormData expects this exact format
+    const fileObj = {
       uri: pic.uri,
       name: pic.name || pic.fileName || 'profile.jpg',
       type: pic.type || 'image/jpeg',
-    } as any);
+    };
+    formData.append('ProfilePicture', fileObj as any);
+
+    if (__DEV__) {
+      console.log('📷 ProfilePicture added:', {
+        name: fileObj.name,
+        type: fileObj.type,
+        uri: fileObj.uri?.substring(0, 50) + '...',
+      });
+    }
   }
 
   // Documents
@@ -159,11 +192,19 @@ export const buildRiderSignupFormData = (data: IRiderSignUpFormPayload) => {
       );
 
       const file = doc.file as any;
-      formData.append(`Documents[${index}].File`, {
+      const fileObj = {
         uri: file.uri,
         name: file.name || file.fileName || `document_${index}.jpg`,
         type: file.type || 'image/jpeg',
-      } as any);
+      };
+      formData.append(`Documents[${index}].File`, fileObj as any);
+
+      if (__DEV__) {
+        console.log(`📄 Document[${index}] added:`, {
+          name: fileObj.name,
+          type: fileObj.type,
+        });
+      }
     });
   }
 

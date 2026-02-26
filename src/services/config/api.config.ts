@@ -4,10 +4,9 @@
  */
 
 export const API_CONFIG = {
-  BASE_URL:
-    process.env.NEXT_PUBLIC_SERVER_URL ||
-    'https://zylo-backend-3xqn.onrender.com/api',
-  IMAGE_URL: process.env.IMAGE_URL || 'https://zylo-backend-3xqn.onrender.com',
+  BASE_URL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://192.168.1.3:8080/api',
+  IMAGE_URL: process.env.IMAGE_URL || 'http://192.168.1.3:8080',
+
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second

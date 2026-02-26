@@ -49,7 +49,6 @@ class DriverService {
    */
   async register(data: DriverRegisterRequest): Promise<ApiResponse<any>> {
     const formData = buildRiderSignupFormData(data as any);
-
     return httpClient.upload<any>('/rider/register', formData);
   }
 

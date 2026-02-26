@@ -101,19 +101,21 @@ const Personalinformation = () => {
   const handleImagePicker = async () => {
     try {
       const img = await ImagePicker.openPicker({
-        width: 1050,
-        height: 700,
+        width: 600,
+        height: 600,
         cropping: true,
         cropperCircleOverlay: true,
-        mediaType: 'photo',
-        compressImageQuality: Platform.OS === 'ios' ? 0.8 : 1,
+        mediaType: 'any', // Allow any image format
+        compressImageQuality: 0.5,
+        compressImageMaxWidth: 600,
+        compressImageMaxHeight: 600,
       });
 
       const selectedImage: ImageType = {
         name: img.filename || 'profileImage',
         uri: img.path,
         path: img.path,
-        type: img.mime,
+        type: img.mime || 'image/jpeg', // Accept any mime type
       };
 
       setProfileImg(selectedImage);

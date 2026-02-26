@@ -111,7 +111,9 @@ class HttpClient {
    * Handle request errors
    */
   private handleRequestError = (error: AxiosError): Promise<never> => {
-    console.error('❌ Request Error:', error);
+    if (__DEV__) {
+      console.error('❌ Request Error:', error);
+    }
     return Promise.reject(createApiError(error));
   };
 
@@ -126,15 +128,6 @@ class HttpClient {
         url: response.config.url,
         data: response.data,
       });
-    }
-
-    // Backend returns {success: boolean, message: string, data: any}
-    // If success is false, treat it as an error even if HTTP status is 200
-    if (response.data && response.data.success === false) {
-      const error = new Error(response.data.message || 'Request failed');
-      (error as any).response = response;
-      (error as any).config = response.config;
-      throw error;
     }
 
     return response;
@@ -200,7 +193,9 @@ class HttpClient {
 
     // Handle network errors
     if (!error.response) {
-      console.error('🌐 Network Error:', error.message);
+      if (__DEV__) {
+        console.error('🌐 Network Error:', error.message);
+      }
       return Promise.reject(
         new ApiError(ERROR_MESSAGES.NETWORK_ERROR, 'NETWORK_ERROR', 0, {
           originalError: error.message,
@@ -217,7 +212,7 @@ class HttpClient {
 
     // Log error in development
     if (__DEV__) {
-      console.error('❌ API Error:', {
+      console.log('❌ API Error:', {
         status: error.response?.status,
         url: error.config?.url,
         error: error.response?.data,
@@ -366,7 +361,7 @@ class HttpClient {
         // Let axios set Content-Type automatically with boundary
         'Content-Type': 'multipart/form-data',
       },
-      timeout: 60000, // 60 seconds for file uploads
+      timeout: 180000, // 3 minutes for file uploads (3 images × ~60s each)
       onUploadProgress,
     });
   }
