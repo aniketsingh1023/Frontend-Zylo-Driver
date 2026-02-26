@@ -251,16 +251,27 @@ class HttpClient {
       // Extract the actual data from the response
       const backendResponse = response.data as any;
 
-      // Handle case where backend returns success but data might be null/undefined
+      // Handle case where backend returns {success: boolean, message: string, data: any}
       if (backendResponse && typeof backendResponse === 'object') {
+        const isWrapped = 'data' in backendResponse || 'success' in backendResponse;
+        
+        if (isWrapped) {
+          return {
+            success: true,
+            data: backendResponse.data as T,
+            message: backendResponse.message || 'Success',
+          };
+        }
+
+        // If it's not wrapped, the object itself is the data
         return {
           success: true,
-          data: backendResponse.data as T,
-          message: backendResponse.message,
+          data: backendResponse as T,
+          message: 'Success',
         };
       }
 
-      // Fallback for non-standard responses
+      // Fallback for primitive responses
       return {
         success: true,
         data: backendResponse as T,
