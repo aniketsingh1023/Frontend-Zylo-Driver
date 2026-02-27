@@ -55,9 +55,7 @@ const OtpScreen = () => {
         <Button
           buttonName="Verify"
           btnwidth="100%"
-          onPress={() =>
-            navigation.navigate('SetPasswordSignUpScreen')
-          }
+          onPress={() => navigation.navigate('SetPasswordSignUpScreen')}
           style={styles.verifyButton}
         />
       </View>

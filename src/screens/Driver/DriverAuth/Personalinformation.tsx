@@ -508,7 +508,8 @@ const Personalinformation = () => {
               Registration Successful!
             </CustomText>
             <CustomText style={styles.successMessage}>
-              Your account has been created successfully. You will be redirected to the login screen.
+              Your account has been created successfully. You will be redirected
+              to the login screen.
             </CustomText>
           </View>
         </View>

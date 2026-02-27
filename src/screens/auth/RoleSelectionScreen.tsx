@@ -18,13 +18,15 @@ type NavigationProps = StackNavigationProp<
 
 const RoleSelectionScreen = () => {
   const navigation = useNavigation<NavigationProps>();
-  const [selectedRole, setSelectedRole] = useState<'driver' | 'customer' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<
+    'driver' | 'customer' | null
+  >(null);
 
   const handleContinue = () => {
     if (!selectedRole) {
       return;
     }
-    
+
     if (selectedRole === 'driver') {
       navigation.navigate('LocationPermissionScreen');
     } else {
@@ -35,9 +37,9 @@ const RoleSelectionScreen = () => {
 
   return (
     <WrapperScreen>
-      <Header 
-        showBack 
-        leftText="Back" 
+      <Header
+        showBack
+        leftText="Back"
         onLeftPress={() => navigation.navigate('WelcomeScreen')}
       />
       <View style={styles.container}>

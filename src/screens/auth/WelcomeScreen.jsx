@@ -1,10 +1,10 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import WrapperScreen from '../../common/WrapperScreen';
-import {SVG} from '../../common/SvgHelper';
+import { SVG } from '../../common/SvgHelper';
 import Button from '../../common/Button';
 
-const Welcome = ({navigation}) => {
+const Welcome = ({ navigation }) => {
   return (
     <WrapperScreen>
       <View style={styles.logoContainer}>

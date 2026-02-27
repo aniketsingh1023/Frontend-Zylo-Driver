@@ -1,14 +1,20 @@
-import {useNavigation} from '@react-navigation/native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {useState} from 'react';
-import {StyleSheet, TouchableOpacity, View, Image, Platform} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useState } from 'react';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Image,
+  Platform,
+} from 'react-native';
 import Button from '../../../../common/Button';
 import CustomText from '../../../../common/CustomText';
-import {SVG} from '../../../../common/SvgHelper';
-import {Font} from '../../../../common/Theam';
+import { SVG } from '../../../../common/SvgHelper';
+import { Font } from '../../../../common/Theam';
 import WrapperScreen from '../../../../common/WrapperScreen';
-import {AuthStackParamList} from '../../../auth';
-import {ImageType} from '../../../../api/types/authTypes';
+import { AuthStackParamList } from '../../../auth';
+import { ImageType } from '../../../../api/types/authTypes';
 import ImagePicker from 'react-native-image-crop-picker';
 
 type NavigationProps = StackNavigationProp<
@@ -32,7 +38,7 @@ const Selfverfication = ({
     },
     {
       id: 2,
-      title: 'The Selfie should have the applicant\'s face alone.',
+      title: "The Selfie should have the applicant's face alone.",
     },
     {
       id: 3,
@@ -71,9 +77,7 @@ const Selfverfication = ({
       <View style={styles.container}>
         {checklist.map(item => {
           return (
-            <View
-              key={item.id}
-              style={styles.checkItem}>
+            <View key={item.id} style={styles.checkItem}>
               <SVG.CheckedIcon height={20} width={20} />
               <CustomText style={styles.checktitle}>{item.title}</CustomText>
             </View>
@@ -81,11 +85,12 @@ const Selfverfication = ({
         })}
         <TouchableOpacity
           style={styles.chooseimage}
-          onPress={handleImagePicker}>
+          onPress={handleImagePicker}
+        >
           {image ? (
             <View style={styles.previewContainer}>
               <Image
-                source={{uri: image.uri}}
+                source={{ uri: image.uri }}
                 style={styles.previewImage}
                 resizeMode="cover"
               />
