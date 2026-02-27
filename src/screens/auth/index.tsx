@@ -12,6 +12,7 @@ import SignUpScreen from './SignUpScreen';
 import Splash from './Splash';
 import VerificationScreen from './VerificationScreen';
 import Welcome from './WelcomeScreen';
+import RoleSelectionScreen from './RoleSelectionScreen';
 
 /////jitendra//
 import Drivinglicense from '../Driver/DriverAuth/components/Drivinglicense';
@@ -51,6 +52,7 @@ export type AuthStackParamList = {
   SplashScreen: undefined;
   DashboardScreen: { page: string } | undefined;
   WelcomeScreen: undefined;
+  RoleSelectionScreen: undefined;
   RideScreen: undefined;
   LocationPermissionScreen: undefined;
   SignUpScreen: undefined;
@@ -100,6 +102,12 @@ const AuthNavigator: React.FC = () => {
       <AuthStack.Screen
         name="WelcomeScreen"
         component={Welcome}
+        options={{ headerShown: false }}
+      />
+
+      <AuthStack.Screen
+        name="RoleSelectionScreen"
+        component={RoleSelectionScreen}
         options={{ headerShown: false }}
       />
 

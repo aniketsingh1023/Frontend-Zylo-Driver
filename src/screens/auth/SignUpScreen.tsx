@@ -158,8 +158,8 @@ const SignUpScreen = () => {
                   phoneNumber: phone,
                 }),
               );
-              // handleSendOtpToMail();
-              navigation.navigate('SetPasswordSignUpScreen');
+              // Navigate to OTP verification
+              navigation.navigate('OtpScreen', { page: 'signup' });
             }}
             style={styles.signUpButton}
           />

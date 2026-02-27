@@ -56,11 +56,7 @@ const OtpScreen = () => {
           buttonName="Verify"
           btnwidth="100%"
           onPress={() =>
-            navigation.navigate(
-              pagename == 'signin'
-                ? 'DashboardScreen'
-                : 'SetPasswordSignUpScreen',
-            )
+            navigation.navigate('SetPasswordSignUpScreen')
           }
           style={styles.verifyButton}
         />

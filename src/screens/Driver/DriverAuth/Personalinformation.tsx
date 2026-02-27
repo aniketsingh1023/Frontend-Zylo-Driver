@@ -37,6 +37,7 @@ import { useSignUp } from '../../../data-access/mutations/auth';
 import { AuthStackParamList } from '../../auth';
 import Drivinglicense from './components/Drivinglicense';
 import Governmentid from './components/Governmentid';
+import Selfverfication from './components/Selfverification';
 import { extractErrorMessage } from '../../../utils/helper';
 import {
   logoutUserInfoRedux,
@@ -45,9 +46,9 @@ import {
 
 const steps = [
   { id: 1, title: 'Personal Info' },
-  // {id: 2, title: 'Self Verification'},
-  { id: 2, title: 'Government ID' },
-  { id: 3, title: 'Driving License' },
+  { id: 2, title: 'Upload Selfie' },
+  { id: 3, title: 'Aadhaar Card' },
+  { id: 4, title: 'Driving License' },
 ];
 type NavigationProps = StackNavigationProp<
   AuthStackParamList,
@@ -65,8 +66,10 @@ const Personalinformation = () => {
 
   const navigation = useNavigation<NavigationProps>();
   const [activeStep, setActiveStep] = useState(1);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [openLocationModal, setOpenLocationModal] = useState(false);
   const [profileImg, setProfileImg] = useState<ImageType | null>(null);
+  const [selfieImg, setSelfieImg] = useState<ImageType | null>(null);
   const [documentImg, setDocumentImg] = useState<ImageType | null>(null);
   const [drivingLicense, setDrivingLicenseImg] = useState<ImageType | null>(
     null,
@@ -307,11 +310,19 @@ const Personalinformation = () => {
         </View> */}
           </ScrollView>
         );
-      // case 2:
-      //   return <Selfverfication />;
       case 2:
-        return <Governmentid image={documentImg} setImage={setDocumentImg} />;
+        return (
+          <View style={styles.uploadContainer}>
+            <CustomText style={styles.stepTitle}>Upload Your Selfie</CustomText>
+            <CustomText style={styles.stepDescription}>
+              Please upload a clear selfie photo
+            </CustomText>
+            <Selfverfication image={selfieImg} setImage={setSelfieImg} />
+          </View>
+        );
       case 3:
+        return <Governmentid image={documentImg} setImage={setDocumentImg} />;
+      case 4:
         return (
           <Drivinglicense
             image={drivingLicense}
@@ -326,10 +337,12 @@ const Personalinformation = () => {
   const validateSignUp = (
     user: UserType,
     profileImg: ImageType | null,
+    selfieImg: ImageType | null,
     documerntImg: ImageType | null,
     drivingLicense: ImageType | null,
   ) => {
     if (!profileImg) return 'Profile image is required';
+    if (!selfieImg) return 'Selfie is required';
     if (!documerntImg) return 'Government ID is required';
     if (!drivingLicense) return 'Driving license is required';
     if (!user?.firstName?.trim()) return 'First name is required';
@@ -353,6 +366,7 @@ const Personalinformation = () => {
       const errorMsg = validateSignUp(
         userState,
         profileImg,
+        selfieImg,
         documentImg,
         drivingLicense,
       );
@@ -399,8 +413,12 @@ const Personalinformation = () => {
         onSuccess: async response => {
           if (response?.remote === 'success') {
             dispatch(logoutUserInfoRedux());
-            successToast('Registration successful');
-            navigation.navigate('SignInScreen');
+            setShowSuccessModal(true);
+            // Auto navigate after 3 seconds
+            setTimeout(() => {
+              setShowSuccessModal(false);
+              navigation.navigate('SignInScreen');
+            }, 3000);
           } else {
             errorToast(extractErrorMessage(response));
           }
@@ -474,6 +492,26 @@ const Personalinformation = () => {
             }}
           />
         </SafeAreaView>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        isVisible={showSuccessModal}
+        animationIn="zoomIn"
+        animationOut="zoomOut"
+        backdropOpacity={0.8}
+      >
+        <View style={styles.successModalContainer}>
+          <View style={styles.successModalContent}>
+            <SVG.GreenTick width={80} height={80} />
+            <CustomText style={styles.successTitle}>
+              Registration Successful!
+            </CustomText>
+            <CustomText style={styles.successMessage}>
+              Your account has been created successfully. You will be redirected to the login screen.
+            </CustomText>
+          </View>
+        </View>
       </Modal>
     </WrapperScreen>
   );
@@ -553,6 +591,50 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 10,
     marginTop: 10,
+  },
+  uploadContainer: {
+    flex: 1,
+    padding: 20,
+  },
+  stepTitle: {
+    fontSize: 20,
+    fontFamily: Font.textBolder,
+    color: '#333333',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  stepDescription: {
+    fontSize: 14,
+    fontFamily: Font.textNormal,
+    color: '#6B6B6B',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  successModalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    marginHorizontal: 20,
+  },
+  successModalContent: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  successTitle: {
+    fontSize: 24,
+    fontFamily: Font.textBolder,
+    color: '#333333',
+    marginTop: 20,
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  successMessage: {
+    fontSize: 14,
+    fontFamily: Font.textNormal,
+    color: '#6B6B6B',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
 
