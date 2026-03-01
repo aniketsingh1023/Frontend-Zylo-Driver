@@ -123,13 +123,8 @@ const SignInScreen = () => {
           />
 
           <View style={styles.extraOptions}>
-            <View style={styles.orLine}>
-              <SVG.OrLine />
-            </View>
 
-            <View style={styles.socialIcon}>
-              <SVG.SocialIcon />
-            </View>
+
 
             <SingleLineComponent
               text1="Already have an account? "

@@ -164,12 +164,8 @@ const SignUpScreen = () => {
             style={styles.signUpButton}
           />
           <View style={styles.footer}>
-            <View style={styles.orLine}>
-              <SVG.OrLine />
-            </View>
-            <View style={styles.socialIcon}>
-              <SVG.SocialIcon />
-            </View>
+
+
             <SingleLineComponent
               text1="Already have an account? "
               text2="Sign in"

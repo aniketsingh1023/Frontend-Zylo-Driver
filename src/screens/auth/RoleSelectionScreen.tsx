@@ -19,7 +19,7 @@ type NavigationProps = StackNavigationProp<
 const RoleSelectionScreen = () => {
   const navigation = useNavigation<NavigationProps>();
   const [selectedRole, setSelectedRole] = useState<
-    'driver' | 'customer' | null
+    'driver' | 'restraunt' | null
   >(null);
 
   const handleContinue = () => {
@@ -78,19 +78,19 @@ const RoleSelectionScreen = () => {
           <TouchableOpacity
             style={[
               styles.roleCard,
-              selectedRole === 'customer' && styles.roleCardSelected,
+              selectedRole === 'restraunt' && styles.roleCardSelected,
             ]}
-            onPress={() => setSelectedRole('customer')}
+            onPress={() => setSelectedRole('restraunt')}
             activeOpacity={0.7}
           >
             <View style={styles.roleIconContainer}>
-              <SVG.User width={60} height={60} />
+              <SVG.Restraunt width={60} height={60} />
             </View>
-            <CustomText style={styles.roleTitle}>Customer</CustomText>
+            <CustomText style={styles.roleTitle}>Restraunt</CustomText>
             <CustomText style={styles.roleDescription}>
               Order food from restaurants
             </CustomText>
-            {selectedRole === 'customer' && (
+            {selectedRole === 'restraunt' && (
               <View style={styles.checkmark}>
                 <SVG.GreenTick width={24} height={24} />
               </View>

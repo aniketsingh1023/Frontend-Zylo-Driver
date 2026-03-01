@@ -15,8 +15,8 @@ const Welcome = ({ navigation }) => {
       </View>
       <View style={styles.buttonContainer}>
         <Button
-          buttonName="Create an account"
-          btnwidth="100%"
+          buttonName="Create Account"
+          btnwidth="90%"
           onPress={() => navigation.navigate('RoleSelectionScreen')}
         />
         <View style={styles.buttonSpacing} />

@@ -28,6 +28,7 @@ import SelectedAccount from '../assets/image/svg/SelectedAccount.svg';
 import NavigationIcon from '../assets/image/svg/NavigationIcon.svg';
 import CarIcon from '../assets/image/svg/CarIcon.svg';
 import FoodIcon from '../assets/image/svg/FoodIcon.svg';
+import Restraunt from '../assets/image/svg/Restraunt.svg';
 import ShoppingCart from '../assets/image/svg/ShoppingCart.svg';
 import Search from '../assets/image/svg/Search.svg';
 import FilterIcon from '../assets/image/svg/FilterIcon.svg';
@@ -121,6 +122,7 @@ export const SVG = {
   ShoppingCart,
   CarIcon,
   FoodIcon,
+  Restraunt,
   NavigationIcon,
   SelectedAccount,
   Account,
